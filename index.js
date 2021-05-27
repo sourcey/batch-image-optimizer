@@ -18,6 +18,8 @@ const OUTPUT_DIR = process.env.OUTPUT_DIR || 'example/'
 const TEMP_DIR = process.env.TEMP_DIR || 'tmp/'
 const MANIFEST_FILE = process.env.MANIFEST_FILE || 'manifest.json'
 const GLOB_PATTERN = process.env.GLOB_PATTERN || '**/*'
+const ENABLE_WATCHER = typeof(process.env.ENABLE_WATCHER) !== 'undefined' ? JSON.parse(process.env.ENABLE_WATCHER) : true
+const ENABLE_PROCESS = typeof(process.env.ENABLE_PROCESS) !== 'undefined' ? JSON.parse(process.env.ENABLE_PROCESS) : true
 const SKIP_PROCESSED_FILES = typeof(process.env.SKIP_PROCESSED_FILES) !== 'undefined' ? JSON.parse(process.env.SKIP_PROCESSED_FILES) : true
 const SKIP_NON_ACTIVESTORAGE_FILES = typeof(process.env.SKIP_NON_ACTIVESTORAGE_FILES) !== 'undefined' ? JSON.parse(process.env.SKIP_NON_ACTIVESTORAGE_FILES) : false
 
@@ -136,20 +138,22 @@ async function processImage(filePath) {
   saveManifest(manifest)
 }
 
-
 // Watch filesystem
-chokidar
-  .watch(SOURCE_DIR + GLOB_PATTERN, {
-    ignoreInitial: true
-  })
-  .on('add', async (filePath) => {
-    await processImage(filePath)
-  })
-
+if (ENABLE_WATCHER) {
+  chokidar
+    .watch(SOURCE_DIR + GLOB_PATTERN, {
+      ignoreInitial: true
+    })
+    .on('add', async (filePath) => {
+      await processImage(filePath)
+    })
+}
 
 // Process filesystem
-glob(SOURCE_DIR + GLOB_PATTERN, async (err, files) => {
-  for (const filePath of files) {
-    await processImage(filePath)
-  }
-})
+if (ENABLE_PROCESS) {
+  glob(SOURCE_DIR + GLOB_PATTERN, async (err, files) => {
+    for (const filePath of files) {
+      await processImage(filePath)
+    }
+  })
+}
