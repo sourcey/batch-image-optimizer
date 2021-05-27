@@ -98,15 +98,15 @@ async function resizeImage(filePath) {
         fit: 'inside'
       })
       .jpeg({ mozjpeg: true })
-      .toFile(tmpPath, (err, info) => {
+      .toFile(tmpPath, async (err, info) => {
         // console.log('\tinfo=', info)
         if (!err) {
-          // console.log('\texistsSync=', tmpPath, existsSync(tmpPath))
           console.log('\tformat=', info.format)
           console.log('\tsize=', info.width, 'x', info.height)
           console.log('\tsrc=', getFileSize(filePath))
           console.log('\tdest=', humanSize(info.size))
-          move(tmpPath, outPath, {overwrite: true})
+          await move(tmpPath, outPath, {overwrite: true})
+          console.log('\texistsSync=', outPath, existsSync(outPath))
           resolve(info)
         }
         else {
