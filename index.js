@@ -11,15 +11,24 @@ const {
 const path = require('path')
 const fs = require('fs')
 
+require('dotenv').config()
 
-const SOURCE_DIR = 'example/'
-const OUTPUT_DIR = 'example/'
-const TEMP_DIR = 'tmp/'
-const MANIFEST_FILE = 'manifest.json'
-const GLOB_PATTERN = '**/*'
-const SKIP_PROCESSED_FILES = true
-const SKIP_NON_ACTIVESTORAGE_FILES = true
+const SOURCE_DIR = process.env.SOURCE_DIR || 'example/'
+const OUTPUT_DIR = process.env.OUTPUT_DIR || 'example/'
+const TEMP_DIR = process.env.TEMP_DIR || 'tmp/'
+const MANIFEST_FILE = process.env.MANIFEST_FILE || 'manifest.json'
+const GLOB_PATTERN = process.env.GLOB_PATTERN || '**/*'
+const SKIP_PROCESSED_FILES = typeof(process.env.SKIP_PROCESSED_FILES) !== 'undefined' ? JSON.parse(process.env.SKIP_PROCESSED_FILES) : true
+const SKIP_NON_ACTIVESTORAGE_FILES = typeof(process.env.SKIP_NON_ACTIVESTORAGE_FILES) !== 'undefined' ? JSON.parse(process.env.SKIP_NON_ACTIVESTORAGE_FILES) : false
 
+console.log('config:')
+console.log('\tSOURCE_DIR=', SOURCE_DIR)
+console.log('\tOUTPUT_DIR=', OUTPUT_DIR)
+console.log('\tTEMP_DIR=', TEMP_DIR)
+console.log('\tMANIFEST_FILE=', MANIFEST_FILE)
+console.log('\tGLOB_PATTERN=', GLOB_PATTERN)
+console.log('\tSKIP_PROCESSED_FILES=', SKIP_PROCESSED_FILES)
+console.log('\tSKIP_NON_ACTIVESTORAGE_FILES=', SKIP_NON_ACTIVESTORAGE_FILES)
 
 function humanSize(size) {
   let i = Math.floor(Math.log(size) / Math.log(1024));
