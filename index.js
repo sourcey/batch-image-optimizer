@@ -14,7 +14,7 @@ const fs = require('fs')
 require('dotenv').config()
 
 const SOURCE_DIR = process.env.SOURCE_DIR || 'example/'
-const OUTPUT_DIR = process.env.OUTPUT_DIR || 'example/'
+const OUTPUT_DIR = process.env.OUTPUT_DIR || 'example-optimized/'
 const TEMP_DIR = process.env.TEMP_DIR || 'tmp/'
 const MANIFEST_FILE = process.env.MANIFEST_FILE || 'manifest.json'
 const GLOB_PATTERN = process.env.GLOB_PATTERN || '**/*'
@@ -29,6 +29,8 @@ console.log('\tOUTPUT_DIR=', OUTPUT_DIR)
 console.log('\tTEMP_DIR=', TEMP_DIR)
 console.log('\tMANIFEST_FILE=', MANIFEST_FILE)
 console.log('\tGLOB_PATTERN=', GLOB_PATTERN)
+console.log('\tENABLE_WATCHER=', ENABLE_WATCHER)
+console.log('\tENABLE_PROCESS=', ENABLE_PROCESS)
 console.log('\tSKIP_PROCESSED_FILES=', SKIP_PROCESSED_FILES)
 console.log('\tSKIP_NON_ACTIVESTORAGE_FILES=', SKIP_NON_ACTIVESTORAGE_FILES)
 
@@ -99,16 +101,19 @@ async function resizeImage(filePath) {
         withoutEnlargement: true,
         fit: 'inside'
       })
-      .jpeg({ mozjpeg: true })
+      // .cache(false)
+      .jpeg({
+        // quality: 90,
+        mozjpeg: true
+      })
       .toFile(tmpPath, async (err, info) => {
-        // console.log('\tinfo=', info)
+        console.log('\tinfo=', info)
         if (!err) {
           console.log('\tformat=', info.format)
           console.log('\tsize=', info.width, 'x', info.height)
           console.log('\tsrc=', getFileSize(filePath))
           console.log('\tdest=', humanSize(info.size))
           await move(tmpPath, outPath, {overwrite: true})
-          console.log('\texistsSync=', outPath, existsSync(outPath))
           resolve(info)
         }
         else {
@@ -136,6 +141,7 @@ async function processImage(filePath) {
     addToManifest(manifest, filePath, err)
   }
   saveManifest(manifest)
+  console.log('memory usage:', humanSize(process.memoryUsage().rss))
 }
 
 // Watch filesystem
