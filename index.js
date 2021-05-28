@@ -141,7 +141,9 @@ async function processImage(filePath) {
     addToManifest(manifest, filePath, err)
   }
   saveManifest(manifest)
-  console.log('memory usage:', humanSize(process.memoryUsage().rss))
+  console.log('memory usage: rss=', humanSize(process.memoryUsage().rss),
+    ', heapUsed=', humanSize(process.memoryUsage().heapUsed),
+    ', heapTotal=', humanSize(process.memoryUsage().heapTotal))
 }
 
 // Watch filesystem
