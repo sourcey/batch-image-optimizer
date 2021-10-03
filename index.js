@@ -22,17 +22,19 @@ const ENABLE_WATCHER = typeof(process.env.ENABLE_WATCHER) !== 'undefined' ? JSON
 const ENABLE_PROCESS = typeof(process.env.ENABLE_PROCESS) !== 'undefined' ? JSON.parse(process.env.ENABLE_PROCESS) : true
 const SKIP_PROCESSED_FILES = typeof(process.env.SKIP_PROCESSED_FILES) !== 'undefined' ? JSON.parse(process.env.SKIP_PROCESSED_FILES) : true
 const SKIP_NON_ACTIVESTORAGE_FILES = typeof(process.env.SKIP_NON_ACTIVESTORAGE_FILES) !== 'undefined' ? JSON.parse(process.env.SKIP_NON_ACTIVESTORAGE_FILES) : false
+const PROCESS_NUM_FILES = typeof(process.env.PROCESS_NUM_FILES) !== 'undefined' ? JSON.parse(process.env.PROCESS_NUM_FILES) : undefined
 
 console.log('config:')
-console.log('\tSOURCE_DIR=', SOURCE_DIR)
-console.log('\tOUTPUT_DIR=', OUTPUT_DIR)
-console.log('\tTEMP_DIR=', TEMP_DIR)
-console.log('\tMANIFEST_FILE=', MANIFEST_FILE)
-console.log('\tGLOB_PATTERN=', GLOB_PATTERN)
-console.log('\tENABLE_WATCHER=', ENABLE_WATCHER)
-console.log('\tENABLE_PROCESS=', ENABLE_PROCESS)
-console.log('\tSKIP_PROCESSED_FILES=', SKIP_PROCESSED_FILES)
-console.log('\tSKIP_NON_ACTIVESTORAGE_FILES=', SKIP_NON_ACTIVESTORAGE_FILES)
+console.log('\tSOURCE_DIR =', SOURCE_DIR)
+console.log('\tOUTPUT_DIR =', OUTPUT_DIR)
+console.log('\tTEMP_DIR =', TEMP_DIR)
+console.log('\tMANIFEST_FILE =', MANIFEST_FILE)
+console.log('\tGLOB_PATTERN =', GLOB_PATTERN)
+console.log('\tENABLE_WATCHER =', ENABLE_WATCHER)
+console.log('\tENABLE_PROCESS =', ENABLE_PROCESS)
+console.log('\tSKIP_PROCESSED_FILES =', SKIP_PROCESSED_FILES)
+console.log('\tSKIP_NON_ACTIVESTORAGE_FILES =', SKIP_NON_ACTIVESTORAGE_FILES)
+console.log('\tPROCESS_NUM_FILES =', PROCESS_NUM_FILES)
 
 function humanSize(size) {
   let i = Math.floor(Math.log(size) / Math.log(1024));
@@ -107,17 +109,17 @@ async function resizeImage(filePath) {
         mozjpeg: true
       })
       .toFile(tmpPath, async (err, info) => {
-        console.log('\tinfo=', info)
+        // console.log('\tinfo =', info)
         if (!err) {
-          console.log('\tformat=', info.format)
-          console.log('\tsize=', info.width, 'x', info.height)
-          console.log('\tsrc=', getFileSize(filePath))
-          console.log('\tdest=', humanSize(info.size))
+          console.log('\tformat =', info.format)
+          console.log('\tsize =', info.width, 'x', info.height)
+          console.log('\tsrc =', getFileSize(filePath))
+          console.log('\tdest =', humanSize(info.size))
           await move(tmpPath, outPath, {overwrite: true})
           resolve(info)
         }
         else {
-          console.log('\terror=', err)
+          console.log('\terror =', err)
           reject(err.toString())
         }
       })
@@ -127,6 +129,7 @@ async function resizeImage(filePath) {
 ensureDir(TEMP_DIR)
 ensureDir(OUTPUT_DIR)
 const manifest = loadManifest()
+let numFilesProcessed = 0
 
 async function processImage(filePath) {
   if (SKIP_PROCESSED_FILES && manifest[filePath]) return
@@ -141,9 +144,16 @@ async function processImage(filePath) {
     addToManifest(manifest, filePath, err)
   }
   saveManifest(manifest)
-  console.log('memory usage: rss=', humanSize(process.memoryUsage().rss),
-    ', heapUsed=', humanSize(process.memoryUsage().heapUsed),
-    ', heapTotal=', humanSize(process.memoryUsage().heapTotal))
+
+  numFilesProcessed++
+  if (PROCESS_NUM_FILES && numFilesProcessed > PROCESS_NUM_FILES) {
+    console.log('exiting after ', numFilesProcessed, 'files processed')
+    process.exit()
+  }
+
+  console.log('memory usage: rss =', humanSize(process.memoryUsage().rss),
+    ', heap used =', humanSize(process.memoryUsage().heapUsed),
+    ', heap total =', humanSize(process.memoryUsage().heapTotal))
 }
 
 // Watch filesystem
